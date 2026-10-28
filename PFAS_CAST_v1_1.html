@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PFAS-CAST | PFAS Censoring-Aware Screening Tool</title>
+<meta name="description" content="Client-side PFAS benchmark screening with the censoring-aware multiple-imputation workflow from Kharel et al., Cell Reports Sustainability (2026), https://doi.org/10.1016/j.crsus.2026.100893.">
+<style>
+:root{
+  --p:#5d3a8e; --p2:#7b56aa; --pl:#f4f0fa; --pll:#fbf9fd;
+  --ink:#1f2937; --mut:#5f6b7a; --line:#d9dee8; --bg:#f7f8fb; --white:#fff;
+  --green:#5f8f75; --greenbg:#eef7f1; --red:#bf7a82; --redbg:#f9ecee;
+  --amber:#b98944; --amberbg:#fdf5ea; --blue:#7a96c4; --bluebg:#f1f5fb;
+  --gray:#6b7280; --graybg:#f2f5f8;
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.5;font-size:15px}
+.header{background:linear-gradient(135deg,#40205f,var(--p),#8b6ab8);color:white;padding:28px 36px 24px}
+.header h1{font-size:30px;margin:0 0 8px;font-weight:800;letter-spacing:-.3px}.header p{margin:4px 0;color:#efe5f7;font-size:16px}.header small{color:#e1d1ef;font-size:12px}
+.wrap{max-width:1320px;margin:0 auto;padding:22px 28px 36px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 2px 6px rgba(15,23,42,.04)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:900px){.grid2,.grid3,.grid4{grid-template-columns:1fr}.wrap{padding:14px}.header{padding:22px 18px}}
+h2{font-size:21px;margin:0 0 12px} h3{font-size:17px;margin:0 0 8px} .muted{color:var(--mut);font-size:13px}.small{font-size:13px}.tiny{font-size:12px}.mono{font-family:Consolas,'Courier New',monospace}
+button{border:0;border-radius:10px;padding:10px 18px;background:var(--p);color:white;font-weight:700;font-size:14px;cursor:pointer} button:hover{background:var(--p2)} button:disabled{background:#9ca3af;cursor:not-allowed}.btn2{background:white;color:var(--p);border:1px solid #bca8d9}.btn2:hover{background:var(--pl)}.danger{background:#ca7b82}.danger:hover{background:#b66b72}.green{background:#6b9b7f}.green:hover{background:#5d896f}
+input,select,textarea{border:1px solid var(--line);border-radius:7px;padding:7px 8px;font-size:13px;background:white} input[type=file]{display:none} label{font-size:12px;color:var(--mut);font-weight:700;display:block;margin-bottom:4px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.spacer{height:8px}.box{border:2px dashed #cbd5e1;background:#f8fafc;border-radius:10px;padding:16px;text-align:center}.box.ok{border-color:#059669;background:#ecfdf5}.box .title{font-weight:800;color:#334155}.box .desc{font-size:12px;color:var(--mut);margin:6px 0 10px}.note{border-radius:10px;padding:12px;margin:10px 0;font-size:12px}.note.info{background:var(--bluebg);border:1px solid #bfdbfe;color:#1e3a8a}.note.warn{background:var(--amberbg);border:1px solid #fed7aa;color:#7c2d12}.note.good{background:var(--greenbg);border:1px solid #bbf7d0;color:#064e3b}.note.bad{background:var(--redbg);border:1px solid #fecaca;color:#7f1d1d}
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--line);margin:16px 0 14px;flex-wrap:wrap}.tab{background:transparent;color:var(--mut);border-radius:0;border-bottom:3px solid transparent;margin-bottom:-2px}.tab.on{color:var(--p);border-bottom-color:var(--p);background:transparent}.tab:hover{background:var(--pl)}
+table{border-collapse:collapse;width:100%;font-size:13px} th{background:var(--pl);color:var(--p);text-align:left;padding:8px;border-bottom:2px solid #a78bfa} td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top} tr:nth-child(even) td{background:#fbfbfd}.scroll{overflow:auto;max-height:560px}.badge{display:inline-block;border-radius:999px;padding:2px 8px;font-weight:700;font-size:10px}.b-always{background:var(--redbg);color:var(--red)}.b-new{background:#fef3c7;color:#92400e}.b-never{background:var(--greenbg);color:var(--green)}.b-info{background:var(--bluebg);color:var(--blue)}.b-gray{background:var(--graybg);color:var(--gray)}
+.metric{border:1px solid var(--line);border-radius:10px;padding:12px;background:white}.metric .k{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}.metric .v{font-size:24px;font-weight:800;margin-top:4px}.metric .s{font-size:11px;color:var(--mut)}
+.progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar{height:100%;background:linear-gradient(90deg,var(--p),#8b5cf6);width:0%}.hidden{display:none!important}.footer{padding:18px 34px;background:white;border-top:1px solid var(--line);font-size:11px;color:var(--mut)}
+.figure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.figure-card{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}.figure-card h3{margin:0 0 8px;font-size:18px}.figure-card p{margin:8px 0 0}.figure-card svg{width:100%;height:auto;display:block;border:1px solid #edf2f7;border-radius:10px;background:#fff}.figure-card.full{grid-column:1/-1}.segmented{display:inline-flex;gap:6px;padding:4px;border:1px solid var(--line);border-radius:999px;background:#fff}.segmented button{padding:8px 14px;font-size:13px;border-radius:999px}.segmented button.active{background:var(--pl);color:var(--p);border:1px solid #c8b4e2}.chip-note{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--mut);font-size:13px}@media(max-width:900px){.figure-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="header">
+  <h1>PFAS-CAST v1.1.1</h1>
+  <p>Client-side benchmark screening using the censoring-aware multiple-imputation framework from Kharel et al., <em>Cell Reports Sustainability</em> (2026), <a href="https://doi.org/10.1016/j.crsus.2026.100893" target="_blank" rel="noopener">https://doi.org/10.1016/j.crsus.2026.100893</a>.</p>
+  <small>Exploratory screening and prioritization only; not a regulatory-compliance determination. Uploaded data are processed locally in the browser and are not transmitted by this tool.</small>
+</header>
+<main class="wrap">
+  <section class="card">
+    <div class="grid2">
+      <div class="box" id="dataBox">
+        <div class="title">Monitoring data CSV</div>
+        <div class="desc">Required: system ID, analyte, result value, detect flag or result sign, and reporting limit. Optional: location/sample point ID. Column names are auto-detected, including EPA UCMR 5 Data Finder exports (comma- or tab-delimited).</div>
+        <button onclick="document.getElementById('fileInput').click()">Choose CSV</button>
+        <input id="fileInput" type="file" accept=".csv,.txt" onchange="handleFile(this)">
+        <div class="tiny muted" id="fileStatus" style="margin-top:8px">No file loaded.</div>
+        <button class="btn2" style="margin-top:8px" onclick="downloadTemplate()">Download CSV template</button>
+      </div>
+      <div class="box">
+        <div class="title">Benchmarks and screening endpoints</div>
+        <div class="desc">Defaults reflect the April 2024 PFAS NPDWR framework. EPA announced in May 2025 that PFOA/PFOS standards would be retained while PFHxS, PFNA, HFPO-DA and the HI mixture would be reconsidered.</div>
+        <button class="btn2" onclick="toggleBench()">Configure benchmarks</button>
+        <div id="benchPanel" class="hidden" style="margin-top:12px;text-align:left"></div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="grid4">
+      <div><label>Input units</label><select id="unitSel"><option value="ugL" selected>µg/L</option><option value="ngL">ng/L or ppt</option></select></div>
+      <div><label>MI replicates</label><select id="mSel"><option>250</option><option selected>500</option><option>1000</option><option>2000</option></select></div>
+      <div><label>Random seed</label><input id="seedInput" type="number" value="20260227"></div>
+      <div><label>Flagging rule</label><select id="flagRule"><option value="mean" selected>MI mean ratio &gt; 1</option><option value="p50">MI median ratio &gt; 1</option><option value="p95">MI p95 ratio &gt; 1</option><option value="prob50">P(ratio &gt; 1) ≥ 0.50</option><option value="prob95">P(ratio &gt; 1) ≥ 0.95</option></select></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="green" id="runBtn" onclick="runTool()" disabled>Run screening</button>
+      <button class="btn2" onclick="loadDemo()">Run synthetic demo</button>
+      <button class="btn2 hidden" id="exportBtn" onclick="exportWorkbook()">Export Excel workbook</button>
+      <button class="danger" onclick="resetTool()">Reset</button>
+      <span class="muted" id="runNote">Load a CSV or run the synthetic demo.</span>
+    </div>
+    <div id="progressBox" class="hidden" style="margin-top:12px"><div class="progress"><div class="bar" id="progBar"></div></div><div class="tiny muted" id="progTxt" style="margin-top:4px"></div></div>
+  </section>
+
+  <section class="card hidden" id="resultsCard">
+    <div id="demoNotice"></div>
+    <div class="tabs" id="tabs"></div>
+    <div id="tabContent"></div>
+  </section>
+</main>
+<footer class="footer">
+  <strong>PFAS-CAST v1.1.1</strong> · MIT License · © 2025–2026 Gehendra Kharel and contributors. This tool is an exploratory screening companion to Kharel et al., <em>Cell Reports Sustainability</em> (2026), <a href="https://doi.org/10.1016/j.crsus.2026.100893" target="_blank" rel="noopener">https://doi.org/10.1016/j.crsus.2026.100893</a>. It applies the paper's record-level censored-likelihood MI engine to configurable benchmark screening, but it does not reproduce the national population-weighted headline estimand or determine regulatory compliance. Verify current benchmark status before use. No external JavaScript libraries are loaded.
+</footer>
+<script>
+'use strict';
+const TOOL_VERSION = '1.1.1';
+const METHOD_REFERENCES = [
+  {
+    "key": "source publication",
+    "citation": "Kharel, G., Kirilenko, A. P., Harvey, O. R. and Zou, C. B. Censoring-aware models quantify systematic underestimation of PFAS occurrence in US drinking-water monitoring. Cell Reports Sustainability (2026). https://doi.org/10.1016/j.crsus.2026.100893",
+    "doi": "10.1016/j.crsus.2026.100893",
+    "url": "https://doi.org/10.1016/j.crsus.2026.100893",
+    "supports": "The censoring-aware multiple-imputation framework implemented by this tool."
+  },
+  {
+    "key": "left-censored environmental data",
+    "citation": "Helsel, D. R. Statistics for Censored Environmental Data Using Minitab and R. 2nd edn. Wiley (2012).",
+    "doi": "10.1002/9781118162729",
+    "url": "https://doi.org/10.1002/9781118162729",
+    "supports": "General treatment of nondetects and censored environmental measurements."
+  },
+  {
+    "key": "substitution vs censored-data methods",
+    "citation": "Antweiler, R. C. & Taylor, H. E. Evaluation of statistical treatments of left-censored environmental data using coincident uncensored data sets: I. Summary statistics. Environmental Science & Technology 42, 3732–3738 (2008).",
+    "doi": "10.1021/es071301c",
+    "url": "https://doi.org/10.1021/es071301c",
+    "supports": "Empirical comparison of substitution and censored-data approaches for summary statistics."
+  },
+  {
+    "key": "detection-limit multiple imputation",
+    "citation": "Lubin, J. H. et al. Epidemiologic evaluation of measurement data in the presence of detection limits. Environmental Health Perspectives 112, 1691–1696 (2004).",
+    "doi": "10.1289/ehp.7199",
+    "url": "https://doi.org/10.1289/ehp.7199",
+    "supports": "Model-based handling of measurements subject to detection limits."
+  },
+  {
+    "key": "multiple imputation",
+    "citation": "Rubin, D. B. Multiple Imputation for Nonresponse in Surveys. Wiley (1987).",
+    "doi": "10.1002/9780470316696",
+    "url": "https://doi.org/10.1002/9780470316696",
+    "supports": "Foundational multiple-imputation framework and repeated-imputation inference."
+  },
+  {
+    "key": "MI interval pooling",
+    "citation": "Barnard, J. & Rubin, D. B. Small-sample degrees of freedom with multiple imputation. Biometrika 86, 948–955 (1999).",
+    "doi": "10.1093/biomet/86.4.948",
+    "url": "https://doi.org/10.1093/biomet/86.4.948",
+    "supports": "Reference for finite-M multiple-imputation uncertainty calculations."
+  },
+  {
+    "key": "Gaussian copula context",
+    "citation": "Hoff, P. D. Extending the rank likelihood for semiparametric copula estimation. Annals of Applied Statistics 1, 265–283 (2007).",
+    "doi": "10.1214/07-AOAS107",
+    "url": "https://doi.org/10.1214/07-AOAS107",
+    "supports": "Background for the manuscript’s secondary Gaussian-copula dependence diagnostic; the screening tool uses the primary marginal engine."
+  },
+  {
+    "key": "UCMR 5 data context",
+    "citation": "U.S. Environmental Protection Agency. Fifth Unregulated Contaminant Monitoring Rule Data Finder.",
+    "doi": "",
+    "url": "https://www.epa.gov/dwucmr/fifth-unregulated-contaminant-monitoring-rule-data-finder",
+    "supports": "UCMR 5 data context and EPA treatment of below-MRL values in MCL-comparison averages."
+  },
+  {
+    "key": "default PFAS screening benchmarks",
+    "citation": "U.S. Environmental Protection Agency. Per- and polyfluoroalkyl substances (PFAS) drinking water regulation information.",
+    "doi": "",
+    "url": "https://www.epa.gov/sdwa/and-polyfluoroalkyl-substances-pfas",
+    "supports": "Default April 2024 PFAS NPDWR-framework benchmarks used for exploratory screening."
+  },
+  {
+    "key": "regulatory status warning",
+    "citation": "U.S. Environmental Protection Agency. EPA announces it will keep maximum contaminant levels for PFOA, PFOS.",
+    "doi": "",
+    "url": "https://www.epa.gov/newsreleases/epa-announces-it-will-keep-maximum-contaminant-levels-pfoa-pfos",
+    "supports": "Warning that users should verify current status of PFHxS, PFNA, HFPO-DA and Hazard Index benchmarks before decision support."
+  }
+];
+const DEFAULT_MCLS = {PFOA:0.004, PFOS:0.004, PFHxS:0.010, PFNA:0.010, 'HFPO-DA':0.010};
+const DEFAULT_HI = {PFHxS:0.010, PFNA:0.010, 'HFPO-DA':0.010, PFBS:2.000};
+let MCLS = {...DEFAULT_MCLS}, HI_DEN = {...DEFAULT_HI};
+let rawRows = [], parsedRows = [], result = null, activeTab = 'summary', demoMode = false;
+let fitLabelMode = 'selected';
+const CHART = {purple:'#5d3a8e', purpleLight:'#b9a6d3', amber:'#c79a57', green:'#7aa187', red:'#c47b82', blue:'#7f9fc9', slate:'#7b8798', grid:'#e8edf4', grid2:'#f2f5f9', axis:'#9aa6b2', text:'#334155', leader:'#cfd8e3'};
+
+const MAX_DISPLAY_ROWS = 500;
+
+function esc(x){return String(x ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function xmlEsc(x){return String(x ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmt(x,d=3){return Number.isFinite(x)?x.toFixed(d):'n/a';}
+function pct(x,d=1){return Number.isFinite(x)?(100*x).toFixed(d)+'%':'n/a';}
+function sum(a){let s=0; for(const x of a) s+=x; return s;}
+function mean(a){return a.length?sum(a)/a.length:NaN;}
+function median(a){if(!a.length) return NaN; const s=[...a].sort((x,y)=>x-y); const m=s.length>>1; return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+function quantile(a,p){if(!a.length) return NaN; const s=[...a].sort((x,y)=>x-y); const i=p*(s.length-1), lo=Math.floor(i), hi=Math.ceil(i); return lo===hi?s[lo]:s[lo]*(hi-i)+s[hi]*(i-lo);}
+function mulberry32(a){return function(){a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t^=t+Math.imul(t^t>>>7,61|t); return ((t^t>>>14)>>>0)/4294967296;};}
+function randn(rng){return normInv(Math.max(1e-15, Math.min(1-1e-15, rng())));}
+function normCdf(x){const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911; const s=x<0?-1:1; x=Math.abs(x)/Math.SQRT2; const t=1/(1+p*x); const y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x); return 0.5*(1+s*y);}
+function normInv(p){if(p<=0)return -8;if(p>=1)return 8;const a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.357751867269,-30.66479806614716,2.506628277459239];const b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572];const c=[-0.007784894002430293,-0.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783];const d=[0.007784695709041462,0.3224671290700398,2.445134137142996,3.754408661907416];const pl=0.02425, ph=1-pl;let q,r;if(p<pl){q=Math.sqrt(-2*Math.log(p));return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}if(p<=ph){q=p-0.5;r=q*q;return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}q=Math.sqrt(-2*Math.log(1-p));return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+function logPhi(z){const p=normCdf(z); return Math.log(Math.max(p, 1e-300));}
+function log1mPhi(z){const p=1-normCdf(z); return Math.log(Math.max(p, 1e-300));}
+
+function parseCSV(text){
+  const nl = text.indexOf('\n'); const firstLine = nl > 0 ? text.slice(0, nl) : text;
+  const delim = (firstLine.split('\t').length > firstLine.split(',').length) ? '\t' : ',';
+  const rows=[]; let row=[], cell='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i], n=text[i+1];
+    if(q){ if(c==='"' && n==='"'){cell+='"'; i++;} else if(c==='"'){q=false;} else {cell+=c;} }
+    else { if(c==='"'){q=true;} else if(c===delim){row.push(cell); cell='';} else if(c==='\n'){row.push(cell); rows.push(row); row=[]; cell='';} else if(c==='\r'){} else {cell+=c;} }
+  }
+  row.push(cell); if(row.length>1 || row[0].trim()!=='') rows.push(row);
+  if(!rows.length) return [];
+  const head=rows[0].map(h=>String(h).trim());
+  return rows.slice(1).filter(r=>r.some(x=>String(x).trim()!=='')).map(r=>{const o={}; head.forEach((h,i)=>o[h]=r[i]??''); return o;});
+}
+function normalizeKey(k){return String(k).toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');}
+function getFirst(obj,names){for(const n of names){if(obj[n]!==undefined && obj[n]!==null && String(obj[n]).trim()!=='') return obj[n];} return null;}
+function parseDetect(x){
+  if(typeof x==='number') return x>0;
+  const s=String(x??'').trim().toLowerCase();
+  if(['1','y','yes','true','t','detect','detected','d','present','above','>','='].includes(s)) return true;
+  if(['0','n','no','false','f','non-detect','nondetect','nd','u','not detected','below','<',''].includes(s)) return false;
+  if(s.startsWith('<')) return false;
+  return null;
+}
+function canonicalAnalyte(s){
+  const raw=String(s??'').trim(); const u=raw.toUpperCase().replace(/[\s_]+/g,'-');
+  const aliases={
+    'PFOA':'PFOA','PFOS':'PFOS','PFHXS':'PFHxS','PFHXS':'PFHxS','PFNA':'PFNA','PFBS':'PFBS',
+    'HFPO-DA':'HFPO-DA','HFPO DA':'HFPO-DA','HFPODA':'HFPO-DA','GENX':'HFPO-DA','GEN-X':'HFPO-DA',
+    'PFHPA':'PFHpA','PFHPA':'PFHpA','PFHPA':'PFHpA','PFHXA':'PFHxA','PFHXA':'PFHxA','PFBA':'PFBA','PFPEA':'PFPeA','PFDA':'PFDA','PFHPS':'PFHpS'
+  };
+  const compact=u.replace(/-/g,'');
+  return aliases[u] || aliases[compact] || raw;
+}
+function parseRecords(rows, unit){
+  const mult = unit==='ngL' ? 0.001 : 1.0;
+  const qa={rows_in:rows.length, rows_parsed:0, rows_dropped:0, missing_rl:0, invalid_value:0, unknown_detect:0, unit:unit, columns:{}, warnings:[]};
+  const out=[];
+  for(const rr of rows){
+    const r={}; for(const [k,v] of Object.entries(rr)) r[normalizeKey(k)] = v;
+    const sys = getFirst(r,['system_id','pwsid','pws_id','pws','systemid','system','sys_id','water_system_id','publicwatersystemid','public_water_system_id']);
+    const loc = getFirst(r,['location_id','sample_point_id','samplepointid','sampling_location_id','samplinglocationid','locationid','sample_point','sampling_point','loc_id','site_id','facility_id','entry_point_id','ep_id','location']);
+    const sample = getFirst(r,['sample_id','sampleeventid','sample_event_id','event_id','sample_date','collection_date','date']);
+    const an0 = getFirst(r,['analyte','contaminant','contaminant_name','parameter','analyte_name','characteristicname']);
+    const val0 = getFirst(r,['result_value','analyticalresultvalue','analyticalresultvalue_g_l','analyticalresultvalue_ug_l','analytical_result_value','concentration','value','result','reported_value']);
+    const rl0 = getFirst(r,['rl','mrl','reporting_limit','minimum_reporting_level','mdl','detection_limit','reportinglimit']);
+    const det0 = getFirst(r,['detect_flag','detected','detect','detection_flag','detectflag','analyticalresultssign','analyticalresultsign','result_sign','sign','result_status','qualifier']);
+    if(!sys || !an0){qa.rows_dropped++; continue;}
+    let det = (det0===null) ? !String(val0??'').trim().startsWith('<') : parseDetect(det0);
+    if(det===null){qa.unknown_detect++; qa.rows_dropped++; continue;}
+    let value = Number(String(val0??'').replace(/[^0-9eE+\-.]/g,''));
+    let rl = Number(String(rl0??'').replace(/[^0-9eE+\-.]/g,''));
+    if(!Number.isFinite(value)) value = 0;
+    if(!Number.isFinite(rl) || rl<=0){qa.missing_rl++; if(!det){qa.rows_dropped++; continue;} rl = Math.max(value, 1e-9);}
+    value *= mult; rl *= mult;
+    if(det && value<=0){qa.invalid_value++; qa.rows_dropped++; continue;}
+    out.push({sys:String(sys).trim(), loc:String(loc||sys).trim(), sample:String(sample||'').trim(), analyte:canonicalAnalyte(an0), value, detect:det, rl});
+    qa.rows_parsed++;
+  }
+  qa.n_systems = new Set(out.map(r=>r.sys)).size;
+  qa.n_locations = new Set(out.map(r=>r.sys+'|||'+r.loc)).size;
+  qa.n_analytes = new Set(out.map(r=>r.analyte)).size;
+  qa.n_detects = out.filter(r=>r.detect).length;
+  qa.detection_rate = out.length ? qa.n_detects/out.length : 0;
+  return {records:out, qa};
+}
+
+function logLikLognormal(params, rows){
+  const mu=params[0], eta=params[1], sig=Math.exp(eta); if(!Number.isFinite(mu)||!Number.isFinite(sig)||sig<=0) return -Infinity;
+  const c0 = -0.5*Math.log(2*Math.PI); let ll=0;
+  for(const r of rows){
+    if(r.detect){const x=r.value; if(x<=0) return -Infinity; const z=(Math.log(x)-mu)/sig; ll += c0 - Math.log(x) - eta - 0.5*z*z;}
+    else {const L=Math.max(r.rl,1e-300); const z=(Math.log(L)-mu)/sig; ll += logPhi(z);}
+  }
+  return ll;
+}
+function nelderMeadMax(fn, start, step=[0.5,0.25], maxIter=180, tol=1e-7){
+  let simp=[start, [start[0]+step[0],start[1]], [start[0],start[1]+step[1]]].map(x=>({x, f:fn(x)}));
+  for(let it=0;it<maxIter;it++){
+    simp.sort((a,b)=>b.f-a.f); const best=simp[0], mid=simp[1], worst=simp[2];
+    const spread=Math.max(Math.abs(best.f-worst.f), Math.abs(best.x[0]-worst.x[0]), Math.abs(best.x[1]-worst.x[1])); if(spread<tol) break;
+    const c=[(best.x[0]+mid.x[0])/2,(best.x[1]+mid.x[1])/2];
+    const refl=[c[0]+(c[0]-worst.x[0]), c[1]+(c[1]-worst.x[1])]; const rf=fn(refl);
+    if(rf>best.f){const exp=[c[0]+2*(c[0]-worst.x[0]), c[1]+2*(c[1]-worst.x[1])]; const ef=fn(exp); simp[2]=ef>rf?{x:exp,f:ef}:{x:refl,f:rf};}
+    else if(rf>mid.f){simp[2]={x:refl,f:rf};}
+    else {const cont=[c[0]+0.5*(worst.x[0]-c[0]), c[1]+0.5*(worst.x[1]-c[1])]; const cf=fn(cont); if(cf>worst.f){simp[2]={x:cont,f:cf};} else {simp=[best, {x:[best.x[0]+0.5*(mid.x[0]-best.x[0]), best.x[1]+0.5*(mid.x[1]-best.x[1])], f:0}, {x:[best.x[0]+0.5*(worst.x[0]-best.x[0]), best.x[1]+0.5*(worst.x[1]-best.x[1])], f:0}]; simp[1].f=fn(simp[1].x); simp[2].f=fn(simp[2].x);}}
+  }
+  simp.sort((a,b)=>b.f-a.f); return simp[0];
+}
+function hessianNegLogLik(fn, x){
+  const h0=1e-3, h1=1e-3; const f=(u,v)=>-fn([u,v]); const a=x[0], b=x[1]; const f00=f(a,b);
+  const fpp0=f(a+h0,b), fmm0=f(a-h0,b), fpp1=f(a,b+h1), fmm1=f(a,b-h1);
+  const fpp=f(a+h0,b+h1), fpm=f(a+h0,b-h1), fmp=f(a-h0,b+h1), fmm=f(a-h0,b-h1);
+  return [[(fpp0-2*f00+fmm0)/(h0*h0), (fpp-fpm-fmp+fmm)/(4*h0*h1)], [(fpp-fpm-fmp+fmm)/(4*h0*h1), (fpp1-2*f00+fmm1)/(h1*h1)]];
+}
+function inv2(H){const det=H[0][0]*H[1][1]-H[0][1]*H[1][0]; if(!Number.isFinite(det)||det<=1e-12) return null; return [[H[1][1]/det,-H[0][1]/det],[-H[1][0]/det,H[0][0]/det]];}
+function chol2(C){if(!C) return null; const a=C[0][0]; if(a<=0) return null; const l00=Math.sqrt(a); const l10=C[1][0]/l00; const v=C[1][1]-l10*l10; if(v<=0) return null; return [[l00,0],[l10,Math.sqrt(v)]];}
+function fitPoint(rows){
+  const det=rows.filter(r=>r.detect&&r.value>0).map(r=>Math.log(r.value));
+  if(det.length===0) return null;
+  const mu0=mean(det); let sd0=det.length>1?Math.sqrt(sum(det.map(x=>(x-mu0)**2))/(det.length-1)):1.0; sd0=Math.max(sd0,0.25);
+  const start=[mu0, Math.log(sd0)]; const opt=nelderMeadMax(p=>logLikLognormal(p, rows), start, [0.6,0.35], 220, 1e-7);
+  return {mu:opt.x[0], eta:opt.x[1], sigma:Math.exp(opt.x[1]), logLik:opt.f};
+}
+function optimizeTierC(rows, hyper){
+  const sig=Math.max(hyper.sigmaBar,0.15), eta=Math.log(sig), mu0=hyper.muBar, s2=Math.max(hyper.s2,0.25);
+  function obj(mu){let ll=0; for(const r of rows){const z=(Math.log(Math.max(r.rl,1e-300))-mu)/sig; ll+=logPhi(z);} ll += -0.5*((mu-mu0)**2/s2); return ll;}
+  let lo=mu0-6*Math.sqrt(s2), hi=mu0+6*Math.sqrt(s2), gr=(Math.sqrt(5)-1)/2; let c=hi-gr*(hi-lo), d=lo+gr*(hi-lo);
+  for(let i=0;i<100;i++){if(obj(c)>obj(d)){hi=d; d=c; c=hi-gr*(hi-lo);}else{lo=c; c=d; d=lo+gr*(hi-lo);}}
+  const mu=(lo+hi)/2; return {mu, eta, sigma:sig, logLik:obj(mu), mode:'Tier C regularized'};
+}
+function sampleTruncBelow(mu,sigma,L,rng){const z=(Math.log(Math.max(L,1e-300))-mu)/sigma; const p=Math.max(normCdf(z),1e-15); const u=Math.max(rng()*p,1e-15); const x=Math.exp(mu+sigma*normInv(Math.min(u,1-1e-15))); return Math.max(0, Math.min(x,L));}
+function sampleTruncAbove(mu,sigma,L,rng){const z=(Math.log(Math.max(L,1e-300))-mu)/sigma; const p0=normCdf(z); const u=p0 + rng()*Math.max(1-p0,1e-15); return Math.exp(mu+sigma*normInv(Math.min(u,1-1e-15)));}
+function buildFits(records, rng, warnings){
+  const byAn={}; for(const r of records){(byAn[r.analyte] ||= []).push(r);} const analytes=Object.keys(byAn).sort();
+  const fits=[];
+  for(const an of analytes){
+    const rows=byAn[an]; const nDet=rows.filter(r=>r.detect).length; const nTotal=rows.length; let tier=nDet>=50?'A':nDet>=10?'B2':nDet>=1?'B1':'C';
+    let fit=null; if(nDet>0) fit=fitPoint(rows);
+    fits.push({analyte:an, rows, nDet, nTotal, tier, ...fit});
+  }
+  const A=fits.filter(f=>f.tier==='A' && Number.isFinite(f.mu) && Number.isFinite(f.sigma)); const support=A.length?A:fits.filter(f=>f.nDet>0 && Number.isFinite(f.mu));
+  const sigmaBar=support.length?median(support.map(f=>f.sigma)):1.0; const muBar=support.length?mean(support.map(f=>f.mu)):Math.log(0.002); const s2=support.length>1?Math.max(sum(support.map(f=>(f.mu-muBar)**2))/(support.length-1),0.25):1.0;
+  const hyper={sigmaBar, muBar, s2, nSupport:support.length};
+  for(const f of fits){ if(f.tier==='C'){const tc=optimizeTierC(f.rows, hyper); Object.assign(f,tc); warnings.push(`Tier C fallback/regularized fit used for ${f.analyte}; zero-detection analytes are only partially identified.`);} }
+  // Parameter uncertainty machinery
+  for(const f of fits){
+    if(f.tier==='A'){
+      const fn=p=>logLikLognormal(p,f.rows); const H=hessianNegLogLik(fn,[f.mu,f.eta]); const C=inv2(H); const L=chol2(C); f.cov=C; f.chol=L; f.drawMode=L?'Hessian Gaussian':'point fallback'; if(!L) warnings.push(`Hessian covariance invalid for ${f.analyte}; using point parameters.`);
+    } else if(f.tier==='B2'){
+      f.boot=[]; const B=80; for(let b=0;b<B;b++){const sim=f.rows.map(r=>{if(r.detect){return {...r, value:sampleTruncAbove(f.mu,f.sigma,r.rl||1e-12,rng), detect:true};} return {...r};}); const fb=fitPoint(sim); if(fb) f.boot.push(fb);} f.drawMode=f.boot.length?'conditional bootstrap':'point fallback'; if(!f.boot.length) warnings.push(`B2 bootstrap failed for ${f.analyte}; using point parameters.`);
+    } else if(f.tier==='B1'){
+      f.grid=[]; const muSd=Math.max(f.sigma,0.7), etaSd=0.8, ng=40, vals=[]; let maxll=-Infinity;
+      for(let i=0;i<ng;i++){const mu=f.mu-2.5*muSd + 5*muSd*i/(ng-1); for(let j=0;j<ng;j++){const eta=f.eta-2.0*etaSd + 4*etaSd*j/(ng-1); const ll=logLikLognormal([mu,eta],f.rows); if(Number.isFinite(ll)){vals.push({mu,eta,sigma:Math.exp(eta),ll}); if(ll>maxll) maxll=ll;}}}
+      let total=0; for(const v of vals){v.w=Math.exp(Math.min(0,v.ll-maxll)); total+=v.w;} let cum=0; for(const v of vals){cum+=v.w/total; v.cum=cum;} f.grid=vals; f.drawMode=vals.length?'likelihood-weighted grid':'point fallback';
+    } else {f.drawMode='fixed Tier C regularized';}
+  }
+  return {fits, byAn, hyper};
+}
+function drawParams(f,rng){
+  if(f.tier==='A' && f.chol){const z0=randn(rng), z1=randn(rng); const mu=f.mu+f.chol[0][0]*z0; const eta=f.eta+f.chol[1][0]*z0+f.chol[1][1]*z1; return {mu, sigma:Math.max(Math.exp(eta),0.01)};}
+  if(f.tier==='B2' && f.boot && f.boot.length){const b=f.boot[Math.floor(rng()*f.boot.length)]; return {mu:b.mu, sigma:b.sigma};}
+  if(f.tier==='B1' && f.grid && f.grid.length){const u=rng(); const g=f.grid.find(x=>x.cum>=u) || f.grid[f.grid.length-1]; return {mu:g.mu, sigma:g.sigma};}
+  return {mu:f.mu, sigma:f.sigma};
+}
+function endpointRatios(vals, analytes){
+  const ratios=[];
+  for(const [an,mcl] of Object.entries(MCLS)){const v=vals[an]; if(Number.isFinite(v)) ratios.push({endpoint:an, ratio:v/mcl});}
+  let hi=0, hasHI=false; for(const [an,den] of Object.entries(HI_DEN)){const v=vals[an]; if(Number.isFinite(v)){hi += v/den; hasHI=true;}}
+  if(document.getElementById('hiCheck')?.checked!==false && hasHI) ratios.push({endpoint:'Hazard Index', ratio:hi});
+  if(!ratios.length) ratios.push({endpoint:'No benchmark analytes', ratio:0});
+  return ratios;
+}
+function computeFromLocMeans(locMeans, locToSys, analytes){
+  const sysMax={}; const sysEndpoint={}; const endpointRows=[];
+  for(const [locKey, vals] of Object.entries(locMeans)){
+    const sys=locToSys[locKey]; const ratios=endpointRatios(vals, analytes);
+    for(const r of ratios){endpointRows.push({system_id:sys, location_id:locKey.split('|||')[1], endpoint:r.endpoint, ratio:r.ratio}); if(sysMax[sys]===undefined || r.ratio>sysMax[sys]){sysMax[sys]=r.ratio; sysEndpoint[sys]={location_id:locKey.split('|||')[1], endpoint:r.endpoint, ratio:r.ratio};}}
+  }
+  return {sysMax, sysEndpoint, endpointRows};
+}
+function locMeansZero(records, locKeys, analytes){
+  const sums={}, ns={}; for(const r of records){const k=r.sys+'|||'+r.loc; const ka=k+'|||'+r.analyte; sums[ka]=(sums[ka]||0)+(r.detect?r.value:0); ns[ka]=(ns[ka]||0)+1;}
+  const out={}; for(const lk of locKeys){out[lk]={}; for(const an of analytes){const ka=lk+'|||'+an; if(ns[ka]) out[lk][an]=sums[ka]/ns[ka];}}
+  return out;
+}
+function locMeansMI(records, fitsMap, paramsMap, locKeys, analytes, rng){
+  const sums={}, ns={}; for(const r of records){let v; if(r.detect){v=r.value;} else {const p=paramsMap[r.analyte]; v=sampleTruncBelow(p.mu,p.sigma,r.rl,rng);} const k=r.sys+'|||'+r.loc; const ka=k+'|||'+r.analyte; sums[ka]=(sums[ka]||0)+v; ns[ka]=(ns[ka]||0)+1;}
+  const out={}; for(const lk of locKeys){out[lk]={}; for(const an of analytes){const ka=lk+'|||'+an; if(ns[ka]) out[lk][an]=sums[ka]/ns[ka];}}
+  return out;
+}
+async function runEngine(records, options){
+  const rng=mulberry32(options.seed); const warnings=[]; const {fits, hyper}=buildFits(records, rng, warnings); const analytes=fits.map(f=>f.analyte); const fitsMap=Object.fromEntries(fits.map(f=>[f.analyte,f]));
+  const locKeys=[...new Set(records.map(r=>r.sys+'|||'+r.loc))].sort(); const locToSys=Object.fromEntries(locKeys.map(k=>[k,k.split('|||')[0]])); const systems=[...new Set(records.map(r=>r.sys))].sort();
+  const zeroLoc=locMeansZero(records,locKeys,analytes); const zeroComp=computeFromLocMeans(zeroLoc,locToSys,analytes);
+  const M=options.M; const sysRatios={}; systems.forEach(s=>sysRatios[s]=new Float64Array(M)); const locAcc={}; for(const lk of locKeys){locAcc[lk]={}; for(const an of analytes) locAcc[lk][an]=0;}
+  const conv=[]; const checkpoints=[50,100,200,500,1000,2000].filter(x=>x<=M); let cidx=0;
+  for(let m=0;m<M;m++){
+    const params={}; for(const f of fits) params[f.analyte]=drawParams(f,rng);
+    const locMI=locMeansMI(records,fitsMap,params,locKeys,analytes,rng); const comp=computeFromLocMeans(locMI,locToSys,analytes);
+    for(const s of systems) sysRatios[s][m]=comp.sysMax[s]||0;
+    for(const lk of locKeys){for(const an of analytes){if(Number.isFinite(locMI[lk]?.[an])) locAcc[lk][an]+=locMI[lk][an];}}
+    if(checkpoints[cidx]===m+1){const tmp={}; for(const lk of locKeys){tmp[lk]={}; for(const an of analytes){tmp[lk][an]=locAcc[lk][an]/(m+1);}} const cc=computeFromLocMeans(tmp,locToSys,analytes); let newly=0; for(const s of systems){if((cc.sysMax[s]||0)>1 && !(zeroComp.sysMax[s]>1)) newly++;} conv.push({M:m+1,newly_flagged:newly}); cidx++;}
+    if(m%25===0 || m===M-1){updateProgress((m+1)/M,`MI replicate ${m+1} of ${M}`); await new Promise(requestAnimationFrame);}
+  }
+  const miLoc={}; for(const lk of locKeys){miLoc[lk]={}; for(const an of analytes){miLoc[lk][an]=locAcc[lk][an]/M;}}
+  const miComp=computeFromLocMeans(miLoc,locToSys,analytes);
+  const rule=document.getElementById('flagRule').value;
+  const systemsOut=[]; for(const s of systems){const arr=Array.from(sysRatios[s]); const meanR=mean(arr), medR=median(arr), p05=quantile(arr,0.05), p95=quantile(arr,0.95), pEx=arr.filter(x=>x>1).length/M; const zR=zeroComp.sysMax[s]||0; let flagMI=false; if(rule==='mean') flagMI=meanR>1; else if(rule==='p50') flagMI=medR>1; else if(rule==='p95') flagMI=p95>1; else if(rule==='prob50') flagMI=pEx>=0.50; else if(rule==='prob95') flagMI=pEx>=0.95; const flagZS=zR>1; let classification='never_flagged'; if(flagZS) classification='always_flagged'; else if(flagMI) classification='mi_only_screening_flag'; systemsOut.push({system_id:s, zero_ratio:zR, mi_mean_ratio:meanR, mi_median_ratio:medR, mi_p05_ratio:p05, mi_p95_ratio:p95, exceedance_probability:pEx, flag_zero:flagZS, flag_mi:flagMI, classification, max_delta:meanR-zR, driver_zero:zeroComp.sysEndpoint[s]?.endpoint||'', driver_mi:miComp.sysEndpoint[s]?.endpoint||'', driver_location:miComp.sysEndpoint[s]?.location_id||''});}
+  // Endpoint details using MI mean ratios
+  const endpointDetails=[]; for(const er of miComp.endpointRows){const zr=(zeroComp.endpointRows.find(x=>x.system_id===er.system_id && x.location_id===er.location_id && x.endpoint===er.endpoint)?.ratio)||0; endpointDetails.push({...er, mi_mean_ratio:er.ratio, zero_ratio:zr, delta_ratio:er.ratio-zr});}
+  return {records, qa:options.qa, fits, hyper, warnings, analytes, systems:systemsOut, endpointDetails, convergence:conv, M, seed:options.seed, flagRule:rule, benchmark:{mcls:{...MCLS}, hi:{...HI_DEN}, hi_enabled:document.getElementById('hiCheck')?.checked!==false}, demo:demoMode, run_time:new Date().toISOString()};
+}
+
+function updateProgress(frac,txt){document.getElementById('progressBox').classList.remove('hidden'); document.getElementById('progBar').style.width=Math.round(frac*100)+'%'; document.getElementById('progTxt').textContent=txt;}
+async function runTool(){
+  const unit=document.getElementById('unitSel').value; const parsed=parseRecords(rawRows,unit); parsedRows=parsed.records;
+  if(!parsedRows.length){alert('No valid records parsed. Check column names, units, detect flags, and reporting limits.'); return;}
+  document.getElementById('runBtn').disabled=true; document.getElementById('runBtn').textContent='Running…'; const M=Number(document.getElementById('mSel').value), seed=Number(document.getElementById('seedInput').value)||20260227;
+  try{result=await runEngine(parsedRows,{M,seed,qa:parsed.qa}); document.getElementById('resultsCard').classList.remove('hidden'); document.getElementById('exportBtn').classList.remove('hidden'); document.getElementById('demoNotice').innerHTML=demoMode?'<div class="note info"><strong>Synthetic demo mode.</strong> This dataset is generated in-browser and is not UCMR 5. Upload real monitoring data for screening use.</div>':''; buildTabs(); showTab('summary');}
+  catch(e){console.error(e); alert('Run failed: '+e.message);} finally{document.getElementById('runBtn').disabled=false; document.getElementById('runBtn').textContent='Run screening'; updateProgress(1,'Complete');}
+}
+function handleFile(inp){const f=inp.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=()=>{rawRows=parseCSV(reader.result); demoMode=false; document.getElementById('dataBox').classList.add('ok'); document.getElementById('fileStatus').textContent=`${f.name}: ${rawRows.length.toLocaleString()} rows loaded`; document.getElementById('runBtn').disabled=false;}; reader.readAsText(f);}
+function loadDemo(){demoMode=true; const rng=mulberry32(123); const systems=['PWS001','PWS002','PWS003','PWS004','PWS005','PWS006','PWS007','PWS008']; const analytes=['PFOA','PFOS','PFHxS','PFNA','HFPO-DA','PFBS']; const rows=[]; for(const s of systems){for(let loc=1;loc<=2;loc++){for(let ev=1;ev<=2;ev++){for(const an of analytes){const rl=(an==='HFPO-DA'?0.005:(an==='PFHxS'||an==='PFBS'?0.003:0.004)); const base=(s==='PWS003'||s==='PWS006')?0.006:0.002; const truev=Math.exp(Math.log(base)+(rng()-0.5)*2.0)*(an==='PFBS'?5:1); const det=truev>=rl; rows.push({system_id:s, location_id:'L'+loc, sample_id:'E'+ev, analyte:an, result_value:det?truev.toFixed(6):'', detect_flag:det?'Y':'N', rl});}}}}
+  rawRows=rows; document.getElementById('dataBox').classList.add('ok'); document.getElementById('fileStatus').textContent=`Synthetic demo: ${rows.length} rows generated`; document.getElementById('runBtn').disabled=false; runTool();}
+function resetTool(){rawRows=[]; parsedRows=[]; result=null; demoMode=false; document.getElementById('dataBox').classList.remove('ok'); document.getElementById('fileInput').value=''; document.getElementById('fileStatus').textContent='No file loaded.'; document.getElementById('runBtn').disabled=true; document.getElementById('resultsCard').classList.add('hidden'); document.getElementById('exportBtn').classList.add('hidden'); document.getElementById('progressBox').classList.add('hidden');}
+function toggleBench(){const p=document.getElementById('benchPanel'); p.classList.toggle('hidden'); renderBench();}
+function renderBench(){const p=document.getElementById('benchPanel'); let h='<div class="grid3">'; for(const [an,v] of Object.entries(MCLS)){h+=`<div><label>${esc(an)} MCL (µg/L)</label><input type="number" step="0.0001" value="${v}" onchange="MCLS['${esc(an)}']=Number(this.value)"></div>`;} h+='</div><div class="spacer"></div><div class="grid4">'; for(const [an,v] of Object.entries(HI_DEN)){h+=`<div><label>${esc(an)} HI denominator (µg/L)</label><input type="number" step="0.0001" value="${v}" onchange="HI_DEN['${esc(an)}']=Number(this.value)"></div>`;} h+='</div><div style="margin-top:8px"><label><input id="hiCheck" type="checkbox" checked> Enable Hazard Index endpoint (ratio &gt; 1)</label></div>'; p.innerHTML=h;}
+function downloadTemplate(){const csv='system_id,location_id,sample_id,analyte,result_value,detect_flag,rl\nPWS001,EP1,S1,PFOA,0.0032,Y,0.004\nPWS001,EP1,S1,PFOS,,N,0.004\nPWS001,EP1,S1,PFHxS,,N,0.003\n'; downloadBlob(csv,'pfas_cast_template.csv','text/csv');}
+function buildTabs(){const tabs=[['summary','Summary'],['figures','Figures'],['systems','Systems'],['new','MI-only flags'],['fits','Fits'],['qa','Import QA'],['diag','Diagnostics'],['method','Method'],['refs','References']]; const el=document.getElementById('tabs'); el.innerHTML=''; for(const [id,lab] of tabs){const b=document.createElement('button'); b.className='tab'+(id===activeTab?' on':''); b.textContent=lab; b.onclick=()=>showTab(id); el.appendChild(b);} }
+function showTab(id){activeTab=id; buildTabs(); const c=document.getElementById('tabContent'); if(id==='summary') renderSummary(c); else if(id==='figures') renderFigures(c); else if(id==='systems') renderSystems(c,false); else if(id==='new') renderSystems(c,true); else if(id==='fits') renderFits(c); else if(id==='qa') renderQA(c); else if(id==='diag') renderDiag(c); else if(id==='method') renderMethod(c); else renderRefs(c);}
+function setFitLabelMode(mode){fitLabelMode = (mode==='all'?'all':'selected'); if(result && activeTab==='figures') renderFigures(document.getElementById('tabContent'));}
+function renderSummary(c){const s=result.systems; const nA=s.filter(x=>x.classification==='always_flagged').length, nN=s.filter(x=>x.classification==='mi_only_screening_flag').length, nV=s.filter(x=>x.classification==='never_flagged').length; c.innerHTML=`<div class="grid4"><div class="metric"><div class="k">Systems</div><div class="v">${s.length.toLocaleString()}</div><div class="s">${result.qa.n_locations.toLocaleString()} locations</div></div><div class="metric"><div class="k">Always flagged</div><div class="v" style="color:var(--red)">${nA}</div><div class="s">zero and MI</div></div><div class="metric"><div class="k">MI-only screening flags</div><div class="v" style="color:var(--amber)">${nN}</div><div class="s">potential sub-MRL occurrence contribution</div></div><div class="metric"><div class="k">Never flagged</div><div class="v" style="color:var(--green)">${nV}</div><div class="s">under selected rule</div></div></div><div class="note warn"><strong>Screening interpretation.</strong> MI-only flags are systems where the selected MI benchmark-ratio rule flags at least one endpoint while zero substitution does not. They are not regulatory-compliance determinations.</div><div class="card"><h3>Active benchmarks</h3>${benchTable()}</div>`;}
+function classBadge(x){if(x==='always_flagged')return '<span class="badge b-always">Always flagged</span>'; if(x==='mi_only_screening_flag')return '<span class="badge b-new">MI-only flag</span>'; return '<span class="badge b-never">Never flagged</span>';}
+function renderSystems(c,onlyNew){let rows=[...result.systems]; if(onlyNew) rows=rows.filter(r=>r.classification==='mi_only_screening_flag'); rows.sort((a,b)=>b.max_delta-a.max_delta); let h=`<h2>${onlyNew?'MI-only screening flags':'System screening results'}</h2><div class="scroll"><table><thead><tr><th>System</th><th>Classification</th><th>Zero max ratio</th><th>MI mean ratio</th><th>MI p05–p95</th><th>P(ratio&gt;1)</th><th>Max Δ</th><th>MI driver</th><th>Location</th></tr></thead><tbody>`; for(const r of rows.slice(0,MAX_DISPLAY_ROWS)){h+=`<tr><td class="mono"><strong>${esc(r.system_id)}</strong></td><td>${classBadge(r.classification)}</td><td class="mono">${fmt(r.zero_ratio,3)}</td><td class="mono">${fmt(r.mi_mean_ratio,3)}</td><td class="mono">${fmt(r.mi_p05_ratio,3)}–${fmt(r.mi_p95_ratio,3)}</td><td class="mono">${pct(r.exceedance_probability,1)}</td><td class="mono">${fmt(r.max_delta,3)}</td><td>${esc(r.driver_mi)}</td><td>${esc(r.driver_location)}</td></tr>`;} h+='</tbody></table></div>'; if(rows.length>MAX_DISPLAY_ROWS) h+=`<p class="muted">Showing first ${MAX_DISPLAY_ROWS.toLocaleString()} of ${rows.length.toLocaleString()} rows. Export workbook for all rows.</p>`; c.innerHTML=h;}
+function renderFits(c){let h='<h2>Censored-likelihood marginal fits</h2><div class="scroll"><table><thead><tr><th>Analyte</th><th>Tier</th><th>Detections</th><th>Total</th><th>Detection rate</th><th>Draw mode</th><th>μ</th><th>σ</th><th>Median µg/L</th><th>Mean µg/L</th></tr></thead><tbody>'; for(const f of result.fits){h+=`<tr><td><strong>${esc(f.analyte)}</strong></td><td><span class="badge b-info">${f.tier}</span></td><td class="mono">${f.nDet}</td><td class="mono">${f.nTotal}</td><td class="mono">${pct(f.nDet/f.nTotal,1)}</td><td>${esc(f.drawMode)}</td><td class="mono">${fmt(f.mu,4)}</td><td class="mono">${fmt(f.sigma,4)}</td><td class="mono">${fmt(Math.exp(f.mu),6)}</td><td class="mono">${fmt(Math.exp(f.mu+0.5*f.sigma*f.sigma),6)}</td></tr>`;} h+='</tbody></table></div>'; h+=`<div class="note info">Tiers follow the manuscript: A ≥50 detections; B2 = 10–49; B1 = 1–9; C = zero detections. Tier C uses empirical-Bayes regularization and is partially identified.</div>`; c.innerHTML=h;}
+function renderQA(c){const q=result.qa; let h='<h2>Import QA</h2><div class="grid3">'; const items=[['Rows loaded',q.rows_in],['Rows parsed',q.rows_parsed],['Rows dropped',q.rows_dropped],['Systems',q.n_systems],['Locations',q.n_locations],['Analytes',q.n_analytes],['Detection rate',pct(q.detection_rate,1)],['Missing RL dropped',q.missing_rl],['Unknown detect flag',q.unknown_detect]]; for(const [k,v] of items){h+=`<div class="metric"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`;} h+='</div>'; if(result.warnings.length){h+='<div class="note warn"><strong>Warnings</strong><ul>'; for(const w of result.warnings) h+=`<li>${esc(w)}</li>`; h+='</ul></div>';} c.innerHTML=h;}
+function renderDiag(c){let h='<h2>Convergence diagnostics</h2><table><thead><tr><th>MI replicates</th><th>MI-only screening flags</th></tr></thead><tbody>'; for(const r of result.convergence){h+=`<tr><td class="mono">${r.M}</td><td class="mono">${r.newly_flagged}</td></tr>`;} h+='</tbody></table><div class="note info">Checkpoint counts are computed from cumulative MI means at each replicate count, not from the final run copied backwards.</div>'; c.innerHTML=h;}
+function renderMethod(c){c.innerHTML=`<h2>Method equivalence and scope</h2><div class="note good"><strong>Implemented here.</strong> The tool uses record-level left-censoring, analyte-specific censored lognormal likelihoods, the A/B2/B1/C tier structure, tier-specific parameter uncertainty draws, repeated-record aggregation before benchmark classification, and model-based MI screening ratios.</div><div class="note warn"><strong>Screening scope.</strong> This browser tool applies the manuscript method to configurable benchmark screening. It does not reproduce the paper's national monitored-CWS population-weighted occurrence estimand, does not determine regulatory compliance, and does not use the optional copula diagnostic because the manuscript treats the copula as secondary and non-load-bearing.</div><p class="small">For each analyte, the fitted likelihood is Σ log f(x_i; μ,σ) over detections plus Σ log F(L_i; μ,σ) over censored records. Censored records are imputed from the fitted lognormal truncated below the reporting limit. Repeated samples are aggregated at the location–analyte level before endpoint ratios are computed.</p>`;}
+
+function svgText(x,y,txt,anchor,size,fill,rot,weight){return `<text x="${x}" y="${y}" text-anchor="${anchor||'middle'}" font-size="${size||12}" font-family="Arial, Helvetica, sans-serif" font-weight="${weight||400}" fill="${fill||CHART.text}" ${rot?`transform="rotate(${rot} ${x} ${y})"`:''}>${xmlEsc(txt)}</text>`;}
+function figureCard(id,title,svg,caption,wide=false){return `<div class="figure-card${wide?' full':''}"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div><h3>${esc(title)}</h3></div><button class="btn2" onclick="downloadSvgById('${id}','${id}.svg')">Download SVG</button></div>${svg}<p class="muted">${caption}</p></div>`;}
+function downloadSvgById(id,name){const el=document.getElementById(id); if(!el) return; downloadBlob(el.outerHTML,name,'image/svg+xml');}
+function makeBarSVG(id, items, opts={}){const crowded=items.length>10; const W=crowded?700:620,H=crowded?340:300,M={l:66,r:24,t:28,b:crowded?110:60}; const innerW=W-M.l-M.r, innerH=H-M.t-M.b; const maxV=Math.max(...items.map(d=>Number(d.value)||0),1); const bw=Math.max(crowded?16:28, innerW/items.length*0.62); let body=`<svg id="${id}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="${W}" height="${H}" fill="white"/>`; for(let i=0;i<=5;i++){const y=M.t+innerH-(innerH*i/5); body+=`<line x1="${M.l}" y1="${y}" x2="${W-M.r}" y2="${y}" stroke="${CHART.grid}" stroke-width="1"/>`; body+=svgText(M.l-10,y+4,(maxV*i/5).toFixed(maxV>=10?0:2),'end',11,CHART.slate);} body+=`<line x1="${M.l}" y1="${M.t}" x2="${M.l}" y2="${H-M.b}" stroke="${CHART.axis}"/><line x1="${M.l}" y1="${H-M.b}" x2="${W-M.r}" y2="${H-M.b}" stroke="${CHART.axis}"/>`; items.forEach((d,i)=>{const x=M.l + (i+0.5)*innerW/items.length - bw/2; const h=(Number(d.value)||0)/maxV*innerH; const y=H-M.b-h; body+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="6" fill="${d.color||CHART.purple}" opacity="0.94"/>`; body+=svgText(x+bw/2,H-M.b+(crowded?36:18),d.label,'middle',crowded?10:11,CHART.text,crowded?-50:0); body+=svgText(x+bw/2,y-8,String(d.value),'middle',11,'#1f2937',0,700);}); if(opts.yLabel) body+=svgText(18,H/2,opts.yLabel,'middle',12,CHART.slate,-90); if(opts.xLabel) body+=svgText(W/2,H-14,opts.xLabel,'middle',12,CHART.slate); return body+'</svg>';}
+function makeLineSVG(id, items, opts={}){const W=620,H=300,M={l:66,r:24,t:26,b:56}; const innerW=W-M.l-M.r, innerH=H-M.t-M.b; const xs=items.map(d=>Number(d.x)||0), ys=items.map(d=>Number(d.y)||0); const xmin=Math.min(...xs,0), xmax=Math.max(...xs,1), ymin=Math.min(...ys,0), ymax=Math.max(...ys,1); const xr=(xmax-xmin)||1, yr=(ymax-ymin)||1; const xMap=x=>M.l+(x-xmin)/xr*innerW, yMap=y=>H-M.b-(y-ymin)/yr*innerH; let body=`<svg id="${id}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="${W}" height="${H}" fill="white"/>`; for(let i=0;i<=5;i++){const y=M.t+innerH-(innerH*i/5); body+=`<line x1="${M.l}" y1="${y}" x2="${W-M.r}" y2="${y}" stroke="${CHART.grid}"/>`; body+=svgText(M.l-10,y+4,(ymin+yr*i/5).toFixed(0),'end',11,CHART.slate);} for(let i=0;i<=5;i++){const x=M.l+innerW*i/5; body+=`<line x1="${x}" y1="${M.t}" x2="${x}" y2="${H-M.b}" stroke="${CHART.grid2}"/>`; body+=svgText(x,H-M.b+18,(xmin+xr*i/5).toFixed(0),'middle',11,CHART.slate);} body+=`<line x1="${M.l}" y1="${M.t}" x2="${M.l}" y2="${H-M.b}" stroke="${CHART.axis}"/><line x1="${M.l}" y1="${H-M.b}" x2="${W-M.r}" y2="${H-M.b}" stroke="${CHART.axis}"/>`; const pts=items.map(d=>`${xMap(d.x)},${yMap(d.y)}`).join(' '); body+=`<polyline fill="none" stroke="${CHART.purple}" stroke-width="3" points="${pts}"/>`; items.forEach(d=>{const x=xMap(d.x), y=yMap(d.y); body+=`<circle cx="${x}" cy="${y}" r="4.8" fill="${CHART.purple}"/>`;}); if(opts.yLabel) body+=svgText(18,H/2,opts.yLabel,'middle',12,CHART.slate,-90); if(opts.xLabel) body+=svgText(W/2,H-14,opts.xLabel,'middle',12,CHART.slate); return body+'</svg>';}
+function makeScatterSVG(id, items, opts={}){const W=640,H=380,M={l:68,r:26,t:28,b:58}; const innerW=W-M.l-M.r, innerH=H-M.t-M.b; const xs=items.map(d=>Number(d.x)||0), ys=items.map(d=>Number(d.y)||0); const maxv=Math.max(...xs,...ys,1.2); const xmin=0,ymin=0,xmax=maxv*1.05,ymax=maxv*1.05; const xr=(xmax-xmin)||1, yr=(ymax-ymin)||1; const xMap=x=>M.l+(x-xmin)/xr*innerW, yMap=y=>H-M.b-(y-ymin)/yr*innerH; let body=`<svg id="${id}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="${W}" height="${H}" fill="white"/>`; for(let i=0;i<=5;i++){const tick=xmin+(xmax-xmin)*i/5; const x=xMap(tick), y=yMap(tick); body+=`<line x1="${x}" y1="${M.t}" x2="${x}" y2="${H-M.b}" stroke="${CHART.grid2}"/><line x1="${M.l}" y1="${y}" x2="${W-M.r}" y2="${y}" stroke="${CHART.grid}"/>`; body+=svgText(x,H-M.b+18,tick.toFixed(1),'middle',11,CHART.slate); body+=svgText(M.l-10,y+4,tick.toFixed(1),'end',11,CHART.slate);} body+=`<line x1="${M.l}" y1="${yMap(1)}" x2="${W-M.r}" y2="${yMap(1)}" stroke="${CHART.amber}" stroke-dasharray="6 5"/><line x1="${xMap(1)}" y1="${M.t}" x2="${xMap(1)}" y2="${H-M.b}" stroke="${CHART.amber}" stroke-dasharray="6 5"/><line x1="${xMap(0)}" y1="${yMap(0)}" x2="${xMap(maxv)}" y2="${yMap(maxv)}" stroke="${CHART.axis}" stroke-dasharray="4 4"/><line x1="${M.l}" y1="${M.t}" x2="${M.l}" y2="${H-M.b}" stroke="${CHART.axis}"/><line x1="${M.l}" y1="${H-M.b}" x2="${W-M.r}" y2="${H-M.b}" stroke="${CHART.axis}"/>`; items.forEach(d=>{const fill=d.classification==='mi_only_screening_flag'?CHART.amber:(d.classification==='always_flagged'?CHART.red:CHART.green); body+=`<circle cx="${xMap(d.x)}" cy="${yMap(d.y)}" r="4.6" fill="${fill}" opacity="0.86"><title>${xmlEsc(d.label||'')}</title></circle>`;}); body+=`<g transform="translate(${W-150},${M.t+8})"><rect x="0" y="0" width="128" height="74" rx="10" fill="white" stroke="#e2e8f0"/><circle cx="14" cy="18" r="5" fill="${CHART.red}"/><text x="28" y="22" font-size="11" fill="${CHART.text}">Always flagged</text><circle cx="14" cy="37" r="5" fill="${CHART.amber}"/><text x="28" y="41" font-size="11" fill="${CHART.text}">MI-only</text><circle cx="14" cy="56" r="5" fill="${CHART.green}"/><text x="28" y="60" font-size="11" fill="${CHART.text}">Never flagged</text></g>`; body+=svgText(W/2,H-14,opts.xLabel||'Zero-substitution maximum benchmark ratio','middle',12,CHART.slate); body+=svgText(18,H/2,opts.yLabel||'MI mean maximum benchmark ratio','middle',12,CHART.slate,-90); return body+'</svg>';}
+function selectedFitLabels(items){const keep=new Set(); const byY=[...items].sort((a,b)=>(Number(b.y)||0)-(Number(a.y)||0)); byY.slice(0,6).forEach(d=>keep.add(d.label)); const byX=[...items].sort((a,b)=>(Number(b.x)||0)-(Number(a.x)||0)); byX.slice(0,2).forEach(d=>keep.add(d.label)); items.filter(d=>d.tier==='A').slice(0,4).forEach(d=>keep.add(d.label)); if(keep.size<Math.min(items.length,8)) byY.slice(0,8).forEach(d=>keep.add(d.label)); return keep;}
+function makeFitScatterSVG(id, items, mode='selected'){const W=720,H=400,M={l:72,r:136,t:26,b:64}; const innerW=W-M.l-M.r, innerH=H-M.t-M.b; const xs=items.map(d=>Number(d.x)||0), ys=items.map(d=>Number(d.y)||0); const xmin=0,xmax=Math.max(...xs,5)*1.08,ymin=0,ymax=Math.max(...ys,0.005)*1.10; const xr=(xmax-xmin)||1, yr=(ymax-ymin)||1; const xMap=x=>M.l+(x-xmin)/xr*innerW, yMap=y=>H-M.b-(y-ymin)/yr*innerH; let body=`<svg id="${id}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="${W}" height="${H}" fill="white"/>`; for(let i=0;i<=5;i++){const xt=xmin+(xmax-xmin)*i/5, yt=ymin+(ymax-ymin)*i/5; body+=`<line x1="${xMap(xt)}" y1="${M.t}" x2="${xMap(xt)}" y2="${H-M.b}" stroke="${CHART.grid2}"/><line x1="${M.l}" y1="${yMap(yt)}" x2="${W-M.r}" y2="${yMap(yt)}" stroke="${CHART.grid}"/>`; body+=svgText(xMap(xt),H-M.b+20,xt.toFixed(0),'middle',11,CHART.slate); body+=svgText(M.l-10,yMap(yt)+4,yt.toFixed(4),'end',11,CHART.slate);} body+=`<line x1="${M.l}" y1="${M.t}" x2="${M.l}" y2="${H-M.b}" stroke="${CHART.axis}"/><line x1="${M.l}" y1="${H-M.b}" x2="${W-M.r}" y2="${H-M.b}" stroke="${CHART.axis}"/>`; const tierColor=t=>t==='A'?CHART.purple:(t==='B2'?CHART.blue:(t==='B1'?CHART.amber:CHART.slate)); items.forEach(d=>{const x=xMap(d.x), y=yMap(d.y); body+=`<circle cx="${x}" cy="${y}" r="5.2" fill="${tierColor(d.tier)}" opacity="0.9"/>`;}); const labelNames = mode==='all' ? new Set(items.map(d=>d.label)) : selectedFitLabels(items); const boxes=[]; const sorted=[...items].filter(d=>labelNames.has(d.label)).sort((a,b)=>((Number(b.y)||0)-(Number(a.y)||0))||((Number(a.x)||0)-(Number(b.x)||0))); sorted.forEach((d,idx)=>{const x=xMap(d.x), y=yMap(d.y); const text=d.label||''; const tw=Math.max(34,text.length*7.0); const th=14; let tx=x+10; if(tx+tw>W-M.r-4) tx=x-10-tw; tx=Math.max(M.l+4,Math.min(tx,W-M.r-tw-4)); let ty=y-10 + ((idx%2===0)?-2:12); ty=Math.max(M.t+th,Math.min(ty,H-M.b-6)); for(let iter=0;iter<50;iter++){ let moved=false; for(const b of boxes){ if(!(tx+tw < b.x || tx > b.x+b.w || ty-th > b.y || ty < b.y-b.h)){ ty = b.y - b.h - 5; if(ty < M.t+th) ty = Math.min(H-M.b-6, b.y + 16); moved=true; } } if(!moved) break; } boxes.push({x:tx,y:ty,w:tw,h:th}); const anchorX=(tx>x)?tx:tx+tw; const anchorY=ty-5; body+=`<line x1="${x}" y1="${y}" x2="${anchorX}" y2="${anchorY}" stroke="${CHART.leader}" stroke-width="1.1"/>`; body+=svgText(tx,ty,text,'start',11,CHART.text,0,600);}); body+=`<g transform="translate(${W-120},${M.t+8})"><rect x="0" y="0" width="108" height="94" rx="10" fill="white" stroke="#e2e8f0"/><circle cx="14" cy="18" r="5" fill="${CHART.purple}"/><text x="28" y="22" font-size="11" fill="${CHART.text}">Tier A</text><circle cx="14" cy="36" r="5" fill="${CHART.blue}"/><text x="28" y="40" font-size="11" fill="${CHART.text}">Tier B2</text><circle cx="14" cy="54" r="5" fill="${CHART.amber}"/><text x="28" y="58" font-size="11" fill="${CHART.text}">Tier B1</text><circle cx="14" cy="72" r="5" fill="${CHART.slate}"/><text x="28" y="76" font-size="11" fill="${CHART.text}">Tier C</text></g>`; body+=svgText(W-66,M.t+120,mode==='all'?'Labels: all':'Labels: selected','middle',11,CHART.slate); body+=svgText(W/2,H-16,'Detection rate (%)','middle',12,CHART.slate); body+=svgText(18,H/2,'Fitted arithmetic mean (µg/L)','middle',12,CHART.slate,-90); return body+'</svg>';}
+function renderFigures(c){const s=[...result.systems]; const counts=[{label:'Always',value:s.filter(x=>x.classification==='always_flagged').length,color:CHART.red},{label:'MI-only',value:s.filter(x=>x.classification==='mi_only_screening_flag').length,color:CHART.amber},{label:'Never',value:s.filter(x=>x.classification==='never_flagged').length,color:CHART.green}]; const top=s.filter(x=>x.classification==='mi_only_screening_flag').sort((a,b)=>b.max_delta-a.max_delta).slice(0,15).map(x=>({label:x.system_id.length>12?x.system_id.slice(0,12)+'…':x.system_id,value:Number(x.max_delta.toFixed(3)),color:CHART.purple})); const scatter=s.map(x=>({x:x.zero_ratio,y:x.mi_mean_ratio,classification:x.classification,label:`${x.system_id} | Δ=${x.max_delta.toFixed(3)}`})); const fits=(result.fits||[]).map(f=>({x:100*f.nDet/Math.max(f.nTotal,1),y:Math.exp(f.mu+0.5*f.sigma*f.sigma),label:f.analyte,tier:f.tier})); const conv=(result.convergence||[]).map(r=>({x:r.M||r.replicates,y:r.newly_flagged||r.mi_only_screening_flag||0})); let h='<h2>Reviewer-facing figures</h2><div class="note info"><strong>Purpose.</strong> These figures summarize the major screening outputs directly in the tool: sub-MRL occurrence screening counts, system-level zero-versus-MI shifts, analyte-level imputation fits, and MI convergence sensitivity. They are now optimized for clearer reviewer screenshots with softened Nature-style colors and larger figure typography. Use the workbook export for the underlying tabular values.</div>'; h+=`<div class="row" style="justify-content:space-between;align-items:center;margin:12px 0 14px;gap:12px;flex-wrap:wrap"><div class="chip-note">Fit-overview label mode: <strong>${fitLabelMode==='all'?'All labels':'Selected labels'}</strong></div><div class="segmented" aria-label="Fit overview label mode"><button class="btn2 ${fitLabelMode==='selected'?'active':''}" onclick="setFitLabelMode('selected')">Selected labels</button><button class="btn2 ${fitLabelMode==='all'?'active':''}" onclick="setFitLabelMode('all')">All labels</button></div></div>`; h+='<div class="figure-grid">'; h+=figureCard('fig_class_counts','System classification summary',makeBarSVG('fig_class_counts',counts,{yLabel:'Systems'}),'Counts of always flagged, MI-only screening flags, and never flagged systems under the selected rule.'); h+=figureCard('fig_scatter','System-level censoring-aware shift',makeScatterSVG('fig_scatter',scatter,{}),'Each point is a system. Dashed amber reference lines indicate the screening-threshold ratio of 1. The gray diagonal is the 1:1 line. Points above the diagonal indicate higher MI than zero-substitution benchmark ratios.',true); h+=figureCard('fig_top_censoring','Top MI-only flags by Δ', top.length?makeBarSVG('fig_top_censoring',top,{yLabel:'Δ benchmark ratio'}):`<div class="note good">No MI-only screening flags were produced under the current settings.</div>`,'Largest positive shifts in maximum benchmark ratio (MI mean minus zero substitution) among MI-only screening flags.'); h+=figureCard('fig_fit_scatter','Analyte fit overview',fits.length?makeFitScatterSVG('fig_fit_scatter',fits,fitLabelMode):`<div class="note warn">No fit data available.</div>`,'Detection rate and fitted arithmetic mean for each analyte. Tier colors follow the manuscript A/B2/B1/C framework. Use “Selected labels” for a clean reviewer view and “All labels” for full inspection.'); h+=figureCard('fig_convergence','MI replicate sensitivity',conv.length?makeLineSVG('fig_convergence',conv,{xLabel:'MI replicates',yLabel:'MI-only screening flags'}):`<div class="note warn">No convergence data available.</div>`,'Cumulative sensitivity of the number of MI-only screening flags to the number of MI replicates; this is the tool’s primary run-stability diagnostic.'); h+='</div>'; c.innerHTML=h;}
+function renderRefs(c){let h='<h2>Method references and regulatory sources</h2><div class="note info"><strong>Purpose.</strong> These references document the statistical lineage of the censored-likelihood MI engine and the regulatory/data sources used for default screening settings. The tool remains an exploratory screening application, not a compliance-determination system.</div><div class="scroll"><table><thead><tr><th>Component</th><th>Reference</th><th>Supports</th></tr></thead><tbody>'; for(const r of METHOD_REFERENCES){const link=r.url?`<br><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.doi||r.url)}</a>`:''; h+=`<tr><td><strong>${esc(r.key)}</strong></td><td>${esc(r.citation)}${link}</td><td>${esc(r.supports)}</td></tr>`;} h+='</tbody></table></div><div class="note warn"><strong>Regulatory note.</strong> Default benchmarks reflect the April 2024 PFAS NPDWR framework. EPA announced in May 2025 that PFOA/PFOS standards would be retained while PFHxS, PFNA, HFPO-DA and the Hazard Index mixture would be reconsidered. Users should verify current regulatory status before decision support.</div>'; c.innerHTML=h;}
+
+function benchTable(){let h='<table><thead><tr><th>Endpoint/analyte</th><th>Individual MCL µg/L</th><th>HI denominator µg/L</th></tr></thead><tbody>'; const keys=[...new Set([...Object.keys(MCLS),...Object.keys(HI_DEN)])]; for(const k of keys){h+=`<tr><td>${esc(k)}</td><td class="mono">${MCLS[k]!==undefined?fmt(MCLS[k],4):'n/a'}</td><td class="mono">${HI_DEN[k]!==undefined?fmt(HI_DEN[k],4):'n/a'}</td></tr>`;} return h+'</tbody></table>';}
+function downloadBlob(content,name,type){const b=new Blob([content],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function sheetXML(name, rows){let xml=`<Worksheet ss:Name="${xmlEsc(name).slice(0,31)}"><Table>`; for(const row of rows){xml+='<Row>'; for(const cell of row){const isNum=typeof cell==='number' && Number.isFinite(cell); xml+=`<Cell><Data ss:Type="${isNum?'Number':'String'}">${xmlEsc(isNum?String(cell):String(cell??''))}</Data></Cell>`;} xml+='</Row>';} return xml+'</Table></Worksheet>';}
+function exportWorkbook(){if(!result)return; const sheets=[]; sheets.push(sheetXML('Config', [['Tool version',TOOL_VERSION],['Run time',result.run_time],['MI replicates',result.M],['Seed',result.seed],['Flag rule',result.flagRule],['Input unit',result.qa.unit],['Use HI',result.benchmark.hi_enabled]])); const summary=[['Metric','Value'],['Systems',result.systems.length],['Records parsed',result.qa.rows_parsed],['Detection rate',result.qa.detection_rate],['Always flagged',result.systems.filter(x=>x.classification==='always_flagged').length],['MI-only screening flags',result.systems.filter(x=>x.classification==='mi_only_screening_flag').length],['Never flagged',result.systems.filter(x=>x.classification==='never_flagged').length]]; sheets.push(sheetXML('Summary',summary)); sheets.push(sheetXML('Systems',[['system_id','classification','zero_ratio','mi_mean_ratio','mi_median_ratio','mi_p05_ratio','mi_p95_ratio','exceedance_probability','max_delta','driver_mi','driver_location'],...result.systems.map(r=>[r.system_id,r.classification,r.zero_ratio,r.mi_mean_ratio,r.mi_median_ratio,r.mi_p05_ratio,r.mi_p95_ratio,r.exceedance_probability,r.max_delta,r.driver_mi,r.driver_location])])); sheets.push(sheetXML('Endpoint_details',[['system_id','location_id','endpoint','zero_ratio','mi_mean_ratio','delta_ratio'],...result.endpointDetails.map(r=>[r.system_id,r.location_id,r.endpoint,r.zero_ratio,r.mi_mean_ratio,r.delta_ratio])])); sheets.push(sheetXML('Fits',[['analyte','tier','n_detected','n_total','detection_rate','draw_mode','mu','sigma','median_ugL','mean_ugL'],...result.fits.map(f=>[f.analyte,f.tier,f.nDet,f.nTotal,f.nDet/f.nTotal,f.drawMode,f.mu,f.sigma,Math.exp(f.mu),Math.exp(f.mu+0.5*f.sigma*f.sigma)])])); sheets.push(sheetXML('Import_QA',Object.entries(result.qa).map(([k,v])=>[k,typeof v==='object'?JSON.stringify(v):v]))); sheets.push(sheetXML('Benchmarks',[['analyte','MCL_ugL','HI_denominator_ugL'],...[...new Set([...Object.keys(MCLS),...Object.keys(HI_DEN)])].map(k=>[k,MCLS[k]??'',HI_DEN[k]??''])])); sheets.push(sheetXML('Convergence',[['M','MI_only_flags'],...result.convergence.map(r=>[r.M,r.newly_flagged])])); sheets.push(sheetXML('Figure_ClassCounts',[['classification','count'],['always_flagged',result.systems.filter(x=>x.classification==='always_flagged').length],['mi_only_screening_flag',result.systems.filter(x=>x.classification==='mi_only_screening_flag').length],['never_flagged',result.systems.filter(x=>x.classification==='never_flagged').length]])); sheets.push(sheetXML('Figure_TopCensoringShift',[['system_id','delta_mean_minus_zero'],...result.systems.filter(x=>x.classification==='mi_only_screening_flag').sort((a,b)=>b.max_delta-a.max_delta).slice(0,25).map(r=>[r.system_id,r.max_delta])])); sheets.push(sheetXML('Figure_FitOverview',[['analyte','tier','detection_rate_pct','fitted_arithmetic_mean_ugL'],...result.fits.map(f=>[f.analyte,f.tier,100*f.nDet/Math.max(f.nTotal,1),Math.exp(f.mu+0.5*f.sigma*f.sigma)])])); sheets.push(sheetXML('References',[['component','citation','doi','url','supports'],...METHOD_REFERENCES.map(r=>[r.key,r.citation,r.doi,r.url,r.supports])])); const xml=`<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">${sheets.join('')}</Workbook>`; downloadBlob(xml,'pfas_cast_screening_results_v1_1.xls','application/vnd.ms-excel');}
+</script>
+</body>
+</html>

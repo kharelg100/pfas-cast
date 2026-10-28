@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software and the paper below."
+type: software
+title: "PFAS Censoring-Aware Screening Tool (PFAS-CAST)"
+version: 1.1.1
+date-released: 2026-10-22
+doi: 10.5281/zenodo.23577354
+license: MIT
+repository-code: https://github.com/kharelg100/pfas-cast
+url: https://kharelg100.github.io/pfas-cast/
+authors:
+  - family-names: Kharel
+    given-names: Gehendra
+    orcid: https://orcid.org/0000-0002-7463-7181
+    affiliation: Texas Christian University
+preferred-citation:
+  type: article
+  title: "Censoring-aware models quantify systematic underestimation of PFAS occurrence in US drinking-water monitoring"
+  journal: Cell Reports Sustainability
+  year: 2026
+  doi: 10.1016/j.crsus.2026.100893
+  authors:
+    - family-names: Kharel
+      given-names: Gehendra
+    - family-names: Kirilenko
+      given-names: Andrei P.
+    - family-names: Harvey
+      given-names: Omar R.
+    - family-names: Zou
+      given-names: Chris B.

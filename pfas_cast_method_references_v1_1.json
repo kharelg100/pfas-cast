@@ -1,0 +1,72 @@
+[
+  {
+    "key": "source publication",
+    "citation": "Kharel, G., Kirilenko, A. P., Harvey, O. R. and Zou, C. B. Censoring-aware models quantify systematic underestimation of PFAS occurrence in US drinking-water monitoring. Cell Reports Sustainability (2026). https://doi.org/10.1016/j.crsus.2026.100893",
+    "doi": "10.1016/j.crsus.2026.100893",
+    "url": "https://doi.org/10.1016/j.crsus.2026.100893",
+    "supports": "The censoring-aware multiple-imputation framework implemented by this tool."
+  },
+  {
+    "key": "left-censored environmental data",
+    "citation": "Helsel, D. R. Statistics for Censored Environmental Data Using Minitab and R. 2nd edn. Wiley (2012).",
+    "doi": "10.1002/9781118162729",
+    "url": "https://doi.org/10.1002/9781118162729",
+    "supports": "General treatment of nondetects and censored environmental measurements."
+  },
+  {
+    "key": "substitution vs censored-data methods",
+    "citation": "Antweiler, R. C. & Taylor, H. E. Evaluation of statistical treatments of left-censored environmental data using coincident uncensored data sets: I. Summary statistics. Environmental Science & Technology 42, 3732–3738 (2008).",
+    "doi": "10.1021/es071301c",
+    "url": "https://doi.org/10.1021/es071301c",
+    "supports": "Empirical comparison of substitution and censored-data approaches for summary statistics."
+  },
+  {
+    "key": "detection-limit multiple imputation",
+    "citation": "Lubin, J. H. et al. Epidemiologic evaluation of measurement data in the presence of detection limits. Environmental Health Perspectives 112, 1691–1696 (2004).",
+    "doi": "10.1289/ehp.7199",
+    "url": "https://doi.org/10.1289/ehp.7199",
+    "supports": "Model-based handling of measurements subject to detection limits."
+  },
+  {
+    "key": "multiple imputation",
+    "citation": "Rubin, D. B. Multiple Imputation for Nonresponse in Surveys. Wiley (1987).",
+    "doi": "10.1002/9780470316696",
+    "url": "https://doi.org/10.1002/9780470316696",
+    "supports": "Foundational multiple-imputation framework and repeated-imputation inference."
+  },
+  {
+    "key": "MI interval pooling",
+    "citation": "Barnard, J. & Rubin, D. B. Small-sample degrees of freedom with multiple imputation. Biometrika 86, 948–955 (1999).",
+    "doi": "10.1093/biomet/86.4.948",
+    "url": "https://doi.org/10.1093/biomet/86.4.948",
+    "supports": "Reference for finite-M multiple-imputation uncertainty calculations."
+  },
+  {
+    "key": "Gaussian copula context",
+    "citation": "Hoff, P. D. Extending the rank likelihood for semiparametric copula estimation. Annals of Applied Statistics 1, 265–283 (2007).",
+    "doi": "10.1214/07-AOAS107",
+    "url": "https://doi.org/10.1214/07-AOAS107",
+    "supports": "Background for the manuscript’s secondary Gaussian-copula dependence diagnostic; the screening tool uses the primary marginal engine."
+  },
+  {
+    "key": "UCMR 5 data context",
+    "citation": "U.S. Environmental Protection Agency. Fifth Unregulated Contaminant Monitoring Rule Data Finder.",
+    "doi": "",
+    "url": "https://www.epa.gov/dwucmr/fifth-unregulated-contaminant-monitoring-rule-data-finder",
+    "supports": "UCMR 5 data context and EPA treatment of below-MRL values in MCL-comparison averages."
+  },
+  {
+    "key": "default PFAS screening benchmarks",
+    "citation": "U.S. Environmental Protection Agency. Per- and polyfluoroalkyl substances (PFAS) drinking water regulation information.",
+    "doi": "",
+    "url": "https://www.epa.gov/sdwa/and-polyfluoroalkyl-substances-pfas",
+    "supports": "Default April 2024 PFAS NPDWR-framework benchmarks used for configurable exploratory screening; users should verify current applicability."
+  },
+  {
+    "key": "regulatory status warning",
+    "citation": "U.S. Environmental Protection Agency. EPA announces it will keep maximum contaminant levels for PFOA, PFOS.",
+    "doi": "",
+    "url": "https://www.epa.gov/newsreleases/epa-announces-it-will-keep-maximum-contaminant-levels-pfoa-pfos",
+    "supports": "Warning that benchmark defaults are not a compliance determination and should be verified before decision support."
+  }
+]

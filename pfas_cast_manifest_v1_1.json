@@ -1,0 +1,42 @@
+{
+  "LICENSE": {
+    "sha256": "7db879afb0dba17b8097c26f9dceb27ff3cf0fe9f0791ad68dd66caad5087d52",
+    "bytes": 1094
+  },
+  "PFAS_CAST_v1_1.html": {
+    "sha256": "ac8ca5af9023a3ed9717ae19f1e8475c26771b2ed16f2b41aaa62eebc07295e6",
+    "bytes": 66074
+  },
+  "PFAS_CAST_v1_1_QA.md": {
+    "sha256": "20babfb959af335dee2991352c5689a3f0356def643f2aa60c2847370f676030",
+    "bytes": 1743
+  },
+  "PFAS_CAST_v1_1_README.md": {
+    "sha256": "16dfb66385224681ff9ccfc89c2e109ceae10ba2bc660a96c63940f2db73cd41",
+    "bytes": 5603
+  },
+  "pfas_cast_method_references_v1_1.json": {
+    "sha256": "45a87d58c37f2ae8aeec5a4b8cb404788df0794001878ecb87709b4e74bfa800",
+    "bytes": 4125
+  },
+  "pfas_cast_requirements_v1_1.txt": {
+    "sha256": "98713476c4192a08c3bb55583acff7b6102038124e348ed3ea8143fd4de8e3c9",
+    "bytes": 39
+  },
+  "pfas_cast_screening_engine_v1_1.py": {
+    "sha256": "bc89633bf09b564dd59fa00ef72f20c9c644e7aa7cbfe3c83ebb155960b2cc3a",
+    "bytes": 43022
+  },
+  "pfas_cast_screening_tool_v1_1.py": {
+    "sha256": "d010ebaab15cf4917f29f27c0cb52a1d75acf394d55bc9ea26d62bef46f7aa9d",
+    "bytes": 20088
+  },
+  "tests/ucmr5_style.txt": {
+    "sha256": "66eaf7ab0a35884b9dba226f739a3325910fbae212e0cbfea208966dcfeb9eb0",
+    "bytes": 33975
+  },
+  "tests/pfas_cast_demo.csv": {
+    "sha256": "0737cf0fbd94056398942b4271c556bdba5679f7b7be6c68461bd2d20d4698dc",
+    "bytes": 10322
+  }
+}
